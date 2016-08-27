@@ -81,27 +81,42 @@ class Network:
 	def initial_error(self, expected_output):
 		return self.layers[-1].initial_error(expected_output)
 
-	def backpropagate(self, expected_output):
-		error = self.initial_error(expected_output)
+	def backpropagate(self, expected_output, inputs):
+		error = []
+		error.append(numpy.transpose(numpy.asarray(self.initial_error(expected_output))))
 		vec_sigmoid = numpy.vectorize(sigmoid)
 		vec_sigmoid_primed = numpy.vectorize(sigmoid_primed)
 		for i in range(len(self.layers)):
 			if(i != 0):
 				if(i == 1):
-					first_part = numpy.dot(numpy.transpose(self.layers[-1].get_weight_matrix()),numpy.asarray(error))
+					first_part = numpy.dot(numpy.transpose(self.layers[-1].get_weight_matrix()),error[0])
 					second_part = numpy.asarray(vec_sigmoid_primed(self.layers[-2].get_z()))
-					error.append(numpy.multiply(first_part,second_part).tolist())
+					print first_part
+					print second_part
+					error.append(numpy.multiply(first_part,second_part))
 				else:
 					curr_layer = (-1)*(i + 1)
 					prev_layer = (-1) * i
 					first_part = numpy.dot(numpy.transpose(self.layers[prev_layer].get_weight_matrix()),error[i-1])
-					print error
-					print numpy.transpose(self.layers[prev_layer].get_weight_matrix())
-					print error[i-1]
-					print first_part
 					second_part = vec_sigmoid_primed(self.layers[curr_layer].get_z())
 					error.append(numpy.multiply(first_part, second_part))
-		return error.reverse()
+		error.reverse()
+		self.dCdb = error
+		weight_matrices = []
+		for i in range(len(self.layers)):
+			weight_matrices.append(self.layers[i].get_weight_matrix())
+			if(i == 0):
+				dimensions = weight_matrices[0].shape
+				for j in range(dimensions[0]):
+					for k in range(dimensions[1]):
+						weight_matrices[0][j][k] = inputs[k]*error[0][j]
+			else:
+				dimensions = weight_matrices[i].shape
+				for j in range(dimensions[0]):
+					for k in range(dimensions[1]):
+						weight_matrices[i][j][k] = self.layers[i-1].neurons[k].output*error[i][j]
+		self.dCdw = weight_matrices
+		return error
 
 
 

@@ -29,4 +29,4 @@ print
 
 print_network(network)
 
-print network.backpropagate([2, 1])
+print network.backpropagate([2, 1], inputs)
