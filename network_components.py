@@ -33,20 +33,37 @@ def sigmoid_primed(x):
 class Neuron:
 	# Inititailizes the neuron with a given bias and set of weights
 	def __init__(self, weights, bias):
+		self.inputs = 0.0
+		self.weights = 0.0
 		self.weights = weights
+		self.bias = 0.0
 		self.bias = bias
-		self.output = 0
+		self.output = 0.0
 
 	# Updates the neuron's output (a) given an input to the neuron
-	def update(self, inputs):
+	def update(self, inputs_to_neuron):
+		self.inputs = inputs_to_neuron
+		weight_sum = 0
 		for i in range(len(self.weights)):
-			self.weights[i] = self.weights[i] * inputs[i]
-		self.output = sigmoid(sum(self.weights) + self.bias)
+			weight_sum += self.weights[i] * self.inputs[i]
+		self.output = sigmoid(weight_sum + self.bias)
 
 	# Calculates the error assuming this neuron is on the last layer
 	def initial_error(self, expected_output):
 		dCda = self.output - expected_output
-		return dCda * sigmoid_primed(sum(self.weights) + self.bias)
+		return dCda * sigmoid_primed(self.get_z())
+
+	def get_z(self):
+		weight_sum = 0
+		for i in range(len(self.weights)):
+			weight_sum += self.weights[i] * self.inputs[i]
+		return weight_sum + self.bias
+
+	def get_a(self):
+		weight_sum = 0
+		for i in range(len(self.weights)):
+			weight_sum += self.weights[i] * self.inputs[i]
+		return sigmoid(weight_sum + self.bias)
 
 
 #================================================
@@ -60,7 +77,10 @@ class Layer:
 	def __init__(self, num_neurons, prev_num_neurons):
 		self.neurons = []
 		for i in range(num_neurons):
-			self.neurons.append(Neuron(random.sample(xrange(10), prev_num_neurons), random.random()))
+			weights = []
+			for i in range(prev_num_neurons):
+				weights.append(random.random())
+			self.neurons.append(Neuron(weights, random.random()))
 
 	# Goes through each neuron and updates their outputs
 	def update(self, inputs):
@@ -74,19 +94,45 @@ class Layer:
 			errors.append(self.neurons[i].initial_error(expected_output[i]))
 		return errors
 
-	# Retrieves the weight matrix from the neurons in the layer
-	def get_weight_matrix(self):
-		weight_matrix = []
-		for i in range(len(self.neurons)):
-			weight_matrix.append(self.neurons[i].weights)
-		return numpy.asarray(weight_matrix)
-
 	# Retrives all the z's (the output before it is sigmoided) in a vector format
 	def get_z(self):
 		z = []
 		for i in range(len(self.neurons)):
-			z.append(sum(self.neurons[i].weights) + self.neurons[i].bias)
+			z.append(self.neurons[i].get_z())
 		return numpy.asarray(z)
+
+	# Retrives all the a's (the output) in a vector format
+	def get_a(self):
+		a = []
+		for i in range(len(self.neurons)):
+			a.append(sigmoid(sum(self.neurons[i].weights) + self.neurons[i].bias))
+		return numpy.asarray(a)
+
+	# Retrieves the weight matrix from the neurons in the layer
+	# Rows are each neuron in current layer
+	# Columns are the weights applied to the current neuron from previous layer
+	def get_weight_matrix(self):
+		weight_matrix = []
+		for i in range(len(self.neurons)):
+			weight_matrix.append(self.neurons[i].weights)
+		return numpy.asarray(weight_matrix).astype(float)
+
+	# Retrives all the biases in a vector format
+	def get_biases(self):
+		biases = []
+		for i in range(len(self.neurons)):
+			biases.append(self.neurons[i].bias)
+		return numpy.asarray(biases)
+
+	def set_weights(self, weight_matrix):
+		for i in range(len(self.neurons)):
+			self.neurons[i].weights = weight_matrix[i]
+
+
+	def set_biases(self, bias_vector):
+		for i in range(len(self.neurons)):
+			self.neurons[i].bias = bias_vector[i]
+
 
 
 #================================================
@@ -168,6 +214,32 @@ class Network:
 		self.dCdw = weight_matrices
 		# Return the error list of matrices because why not
 		return error
+
+	# Perform gradient descent given a set of errors calculated from backpropagation
+	def gradient_descent(self, errors, learning_rate, num_batches):
+		for i in range(len(self.layers) - 1):
+			bias_sum = 0.0	
+			weight_sum = 0.0
+			weight_matrix = self.layers[len(self.layers)-(i+1)].get_weight_matrix()
+			bias_vector = self.layers[len(self.layers)-(i+1)].get_biases()
+
+			for j in range(len(errors[len(self.layers)-(i+1)])): # Go from last layers in
+				bias_sum += errors[len(self.layers)-(i+1)][j]
+				a = self.layers[len(self.layers)-(i+1)].get_a()
+				weight_sum += errors[len(self.layers)-(i+1)][j]*a[j]
+
+			weight_sum = weight_sum*(float(learning_rate)/float(num_batches))*(-1)
+			bias_sum = bias_sum*(learning_rate/num_batches)*(-1)
+			weight_matrix += weight_sum
+			bias_vector += bias_sum
+			self.layers[len(self.layers)-(i+1)].set_weights(weight_matrix)
+			self.layers[len(self.layers)-(i+1)].set_biases(bias_vector)
+
+	# Get the output of the network
+	def get_output(self):
+		return self.layers[-1].get_a()
+
+
 
 
 
