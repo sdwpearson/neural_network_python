@@ -105,7 +105,8 @@ class Layer:
 	def get_a(self):
 		a = []
 		for i in range(len(self.neurons)):
-			a.append(sigmoid(sum(self.neurons[i].weights) + self.neurons[i].bias))
+		#	a.append(sigmoid(sum(self.neurons[i].weights) + self.neurons[i].bias))
+			a.append(self.neurons[i].output)	
 		return numpy.asarray(a)
 
 	# Retrieves the weight matrix from the neurons in the layer
@@ -168,8 +169,9 @@ class Network:
 			if (i == 0):
 				self.layers[i].update(inputs)
 			else:
-				for j in range(len(self.layers[i-1].neurons)):
-					prev_outputs.append(self.layers[i-1].neurons[j].output)
+				#for j in range(len(self.layers[i-1].neurons)):
+				#	prev_outputs.append(self.layers[i-1].neurons[j].output)
+				prev_outputs = self.layers[i-1].get_a()
 				self.layers[i].update(prev_outputs)
 
 	# Calculates the error of the last layer

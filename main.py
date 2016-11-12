@@ -42,13 +42,13 @@ def complete_network_cycle(network, inputs, train, expected_outputs, learning_ra
 
 TRAIN = 1
 TEST = 0
-num_layers = 4
-neurons_per_layer = [2,2,2,1]
+num_layers = 3
+neurons_per_layer = [2,3,1]
 input_dimension = 2
 output_dimension = 1
-learning_rate = 0.01
+learning_rate = 10
 num_batches = 4
-num_epochs = 3
+num_epochs = 10
 
 network = network_components.Network(num_layers, neurons_per_layer, input_dimension)
 
@@ -62,11 +62,11 @@ network = network_components.Network(num_layers, neurons_per_layer, input_dimens
 print "TRAINING:\n"
 for i in range(num_epochs):
 	print "EPOCH " + str(i)
-	##print complete_network_cycle(network, [1.0], TRAIN, [0.0], learning_rate, num_batches)
+	#print complete_network_cycle(network, [1.0], TRAIN, [0.0], learning_rate, num_batches)
 	print complete_network_cycle(network, [0.0,0.0], TRAIN, [0.0], learning_rate, num_batches)
 	print complete_network_cycle(network, [0.0,1.0], TRAIN, [1.0], learning_rate, num_batches)
-	print complete_network_cycle(network, [1.0,1.0], TRAIN, [0.0], learning_rate, num_batches)
 	print complete_network_cycle(network, [1.0,0.0], TRAIN, [1.0], learning_rate, num_batches)
+	print complete_network_cycle(network, [1.0,1.0], TRAIN, [0.0], learning_rate, num_batches)
 
 print "\nTESTING \n"
 
