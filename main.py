@@ -43,12 +43,12 @@ def complete_network_cycle(network, inputs, train, expected_outputs, learning_ra
 TRAIN = 1
 TEST = 0
 num_layers = 3
-neurons_per_layer = [2,3,1]
+neurons_per_layer = [2,2,1]
 input_dimension = 2
 output_dimension = 1
-learning_rate = 10
+learning_rate = 1
 num_batches = 4
-num_epochs = 10
+num_epochs = 20
 
 network = network_components.Network(num_layers, neurons_per_layer, input_dimension)
 
